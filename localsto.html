@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>簡易行事曆</title>
+<style type="text/css">
+body{background-color:#842e27;}
+h1{
+font-size:4em;
+color:#e9ba2c;
+text-align:center;
+margin:auto;}
+h2{
+text-align:center;
+}
+h2{
+color:white;
+}
+.addf{color:white;}
+#add{
+border: 8px solid #e9ba2c;
+width:300px;
+left:40px;
+position:fixed;
+top:100px;
+}
+#removeAll{
+border: 8px solid #e9ba2c;
+width:300px;
+left:40px;
+position:fixed;
+top:500px;
+text-align:center;
+height:160px;
+}
+#remove{
+border: 8px solid #e9ba2c;
+width:300px;
+left:1150px;
+position:absolute;
+top:100px;
+position:fixed;
+}
+#chan{
+border: 8px solid #e9ba2c;
+width:300px;
+left:1150px;
+position:absolute;
+top:350px;
+position:fixed;
+}
+::placeholder {
+  color: white;
+  opacity: 0.6; /*半透明*/
+}
+.addform{
+border: 2px solid white;
+border-radius: 10px;
+width:100px;
+background-color: #842e27;
+color:white;
+}
+form{left:50px;
+position:relative;}
+#detailForm{
+width:130px;
+}
+#threedays{
+border: 2px solid #e9ba2c;
+background-color:white;
+border-radius: 5px;
+position:relative;
+text-align:center;
+width:650px;
+left:420px;
+top:30px;
+box-shadow: 2px 0px 4px rgba(e9,ba,2c,1);
+}
+#all{
+border: 2px solid #e9ba2c;
+background-color:white;
+border-radius: 5px;
+position:relative;
+width:650px;
+left:0px;
+top:10px;
+}
+#allO{
+border-radius: 5px;
+position:relative;
+width:700px;
+left:420px;
+top:80px;
+}
+    .button {
+    border: 2px solid white;
+        -webkit-transition-duration: 0.4s; /* Safari */
+        transition-duration: 0.4s;
+        padding: 15px 32px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 10px;
+        margin: 4px 2px;
+        cursor: pointer;
+        border-radius: 12px;
+    }
+     
+    .button:hover {
+    border: 2px solid white;
+        background-color: #842e27; /*藍色*/
+        color: white;
+        padding: 15px 32px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 10px;
+        margin: 4px 2px;
+        cursor: pointer;
+        border-radius: 12px;
+    }
+table{text-align:center;}
+table {
+    border: 2px double black;
+    margin:50px auto;
+    width:600px;
+    border-radius: 5px;
+}
+.future{
+background-color:white;//未來事件要標白色的
+}
+.past{
+background-color:#9e9e9e;//未來事件要標白色的
+}
+th {        
+        border: 1px solid black;
+        background-color: #842e27;
+        text-align:center; 
+        padding: 2px 4px;
+        color: white;
+        border-radius: 8px;
+} 
+td {
+    border: 1px solid black;
+    text-align:center; 
+    color: black;
+    border-radius: 8px;
+    padding: 2px 4px;
+} 
+#clock{
+top:10px;
+left:40px;
+position:fixed;
+color:white;
+font-size:2em;
+}
+</style>
+<script type="text/javascript">
+window.onload = function(){
+writeback();//印出所有資料
+printthreedays();//印出即將過期的資料
+}
+function getDate(){//取得現在時間
+    var d = new Date();//現在時間
+    var d1 = d.toLocaleString();//格式化後的時間
+    var clock = document.getElementById("clock");
+    clock.innerHTML = d1;
+}
+function writeback(){//把資料寫回所有事項裡
+    let storage = window.localStorage;
+    //先把資料取出
+    var valu = [];
+    for(var i=0;i<storage.length;i++){//把7筆資料重設
+        valu.push(Number(storage.key(i)));
+    }
+    var ffu = valu.sort((a,b)=>a-b);//sort
+    //印標頭
+    let table = document.getElementById("work_table");
+    var tbl="<table>";
+    var tableheader = ["編號","日期","主旨", "說明文字"];
+    tbl +="<tr>";
+    for (let i=0;i<tableheader.length;i++) {
+        tbl += "<th>"+tableheader[i]+"</th>";
+    }
+    tbl +="</tr>";
+    //把每一個鍵值都印出來
+    for ( let k of valu ) {
+        if(isPast(k)==1){
+            tbl +="<tr class='future'>";
+            tbl += "<td>"+"事項"+k+"</td>";
+            tbl += "<td>"+JSON.parse(storage.getItem(k)).Date+"</td>";
+            tbl += "<td>"+JSON.parse(storage.getItem(k)).Main+"</td>";
+            tbl += "<td>"+JSON.parse(storage.getItem(k)).Detail+"</td>";
+            tbl +="</tr>";
+        }else{
+            tbl +="<tr class='past'>";
+            tbl += "<td>"+"事項"+k+"</td>";
+            tbl += "<td>"+JSON.parse(storage.getItem(k)).Date+"</td>";
+            tbl += "<td>"+JSON.parse(storage.getItem(k)).Main+"</td>";
+            tbl += "<td>"+JSON.parse(storage.getItem(k)).Detail+"</td>";
+            tbl +="</tr>";
+        }
+    }
+    tbl +="</table>";
+    document.getElementById("all").innerHTML=tbl;
+    printthreedays();
+}
+function printthreedays(){//印出即將到期事項
+let storage = window.localStorage;
+    //先把資料取出
+    var valu = [];
+    for(var i=0;i<storage.length;i++){//把資料重設
+        valu.push(Number(storage.key(i)));
+    }
+    var ffu = valu.sort((a,b)=>a-b);//[各事項的編號值] 由小到大排序
+    //印出來
+    let table = document.getElementById("work_table");
+    var tbl="<table>";
+    var tableheader = ["編號","日期","主旨", "說明文字"];
+    tbl +="<tr>";
+    for (let i=0;i<tableheader.length;i++) {
+        tbl += "<th>"+tableheader[i]+"</th>";
+    }
+    tbl +="</tr>";
+    for ( let k of valu ) {
+        if(ifUrgent(k)==1){//判斷是否在三天內
+            tbl +="<tr class='future'>";//緊急
+            tbl += "<td>"+"事項"+k+"</td>";
+            tbl += "<td>"+JSON.parse(storage.getItem(k)).Date+"</td>";
+            tbl += "<td>"+JSON.parse(storage.getItem(k)).Main+"</td>";
+            tbl += "<td>"+JSON.parse(storage.getItem(k)).Detail+"</td>";
+            tbl +="</tr>";
+        }
+    }
+    tbl +="</table>";
+    document.getElementById("threedays").innerHTML=tbl;
+}
+function findMaxKey(){//找到最大的鍵值
+    let storage = window.localStorage;
+    //先把資料取出
+    var valu = [];
+    for(var i=0;i<storage.length;i++){//把7筆資料重設
+        valu.push(Number(storage.key(i)));
+    }
+    var ffu = valu.sort((a,b)=>a-b);
+    var max=ffu[ffu.length-1];
+    return max;
+}
+var arr1=[];
+function checkStorage() {//檢查localStorage是不是空的 是空的 傳false 有東西傳true
+    return JSON.stringify(localStorage) == "{}" ? false : true;
+};
+function addarray() {//把表單內的資料丟入陣列中
+let storage = window.localStorage;
+    var max = Number(findMaxKey())+1;
+    var arr=[];//再宣告一個小的空陣列
+    let number = document.getElementById("dateForm");// 獲取文字框內容
+    let stringOne = document.getElementById("mainForm");
+    let stringTwo = document.getElementById("detailForm"); 
+    var mjson = {"Date":number.value,"Main":stringOne.value,"Detail":stringTwo.value};
+    arr1.push(mjson);//[{},{},{},{}.......]
+    if (!checkStorage()){//如果是空的
+        localStorage.setItem(1, JSON.stringify(mjson))//第i筆資料為第i個json
+    }else{
+        var lon = storage.length;//判斷現在storage有多長
+        storage=storage+localStorage.setItem(max, JSON.stringify(mjson));//加到最大數字的鍵值之後
+        lon=lon+1;
+    }
+    writeback();
+} 
+function delnum(){//刪除個別事項
+    let storage = window.localStorage;
+    var delNum = document.getElementById("dnum");
+    window.localStorage.removeItem(delNum.value);//把編號內容移除
+    console.log(storage);
+    writeback();
+}
+function delAll(){//刪除過期事項
+    let storage = window.localStorage;
+    var delNum = document.getElementById("delAll");
+    var valu = [];//先把資料取出
+    for(var i=0;i<storage.length;i++){//把資料重設
+        valu.push(Number(storage.key(i)));
+    }
+    var ffu = valu.sort((a,b)=>a-b);
+    for ( let k of valu ) {
+        if(isPast(k)==0){//過期
+            window.localStorage.removeItem(k);//把編號內容移除
+    }
+    }
+    writeback();
+}
+function changedata(){
+    let storage = window.localStorage;
+    var Nochan = document.getElementById("nochan");//Nochan.value
+    let dchan = document.getElementById("datechan");// 獲取文字框內容
+    let stringOne = document.getElementById("mainchan");
+    let stringTwo = document.getElementById("detailchan"); 
+    var mjson = {"Date":dchan.value,"Main":stringOne.value,"Detail":stringTwo.value};
+    localStorage.setItem(Nochan.value, JSON.stringify(mjson));//第i筆資料為第i個json
+    writeback();
+}
+function isPast(k){
+    var day = JSON.parse(localStorage.getItem(k)).Date;//放編號 //2022-05-18
+    var someday= new Date(day);//目標日期 當日8點
+    var today = new Date();//現在時間
+    var difference = someday.getTime()-today.getTime();//時間相減
+    var remainDay = difference/(60*60*1000);//hr
+/*當下時間減去目標日期:
+      -8hr         0hr            16hr      
+  目標日期0:00   目標日期 8:00   目標日期 24:00 */
+    if(remainDay>-8){//future
+        return 1;
+    }else{//past
+        return 0;
+    }
+}
+function ifUrgent(k){
+    var day = JSON.parse(localStorage.getItem(k)).Date;//放編號 //2022-05-18
+    var someday= new Date(day);//目標日期 當日8點
+    var today = new Date();//現在時間
+    var difference = someday.getTime()-today.getTime();//時間相減
+    var remainDay = difference/(60*60*1000);//hr
+/*當下時間減去目標日期:
+      -8hr         0hr            16hr         40hr    64hr     88hr
+  目標日期0:00   目標日期 8:00   目標日期 24:00    明天     後天     大後天*/
+    if(remainDay<88 && remainDay>-8){//緊急
+        return 1;
+    }else{
+        return 0;
+    }
+}
+</script> 
+</head>
+<body>
+<h1>簡易行事曆</h1>
+<div><p id="clock">clock</p><div>
+<script>
+getDate();
+setInterval("getDate()",1000);//每秒呼叫一次
+</script>
+<div id="add">
+<h2>新增事項</h2>
+<br/>
+<form action="#">
+<label class="addf">日期</label>&nbsp;&nbsp;
+<input type="date" id="dateForm" class="addform" placeholder="ex:20020527"><br/><br/>
+<label class="addf">主旨</label>&nbsp;&nbsp;
+<input type="text" id="mainForm" class="addform" placeholder="輸入摘要"><br/><br/>
+<label class="addf">說明</label>&nbsp;&nbsp;
+<input type="text" id="detailForm" class="addform" placeholder="輸入說明文字"><br/><br/>
+<button onclick="addarray();" class="button">新增</button>
+<button id="reb" class="button" type="reset">重設</button>    
+</form>
+<br/>
+</div>
+<h2>即將到期</h2>
+<div id="threedays">
+</div>
+<div id="allO">
+<h2>所有事項</h2>
+<div id="all"></div>
+</div>
+<div id="removeAll">
+<h2>一鍵刪除過期事項</h2>
+<button id="delAll" onclick="delAll();"class="button">刪除</button>
+</div>
+<div id="remove">
+<h2>刪除事項</h2>
+<br/>
+<form>
+<label class="addf">請輸入編號</label>&nbsp;&nbsp;
+<input type="text" id="dnum" class="addform" placeholder="ex:1,2,3..."><br/><br/>
+<button id="del" onclick="delnum();"class="button">刪除</button>
+<button id="rreb" class="button" type="reset">重設</button>  
+</form>
+<br/>
+</div>
+<div id="chan">
+<h2>修改事項</h2>
+<br/>
+<form action="#">
+<label class="addf">編號</label>&nbsp;&nbsp;
+<input type="text" id="nochan" class="addform" placeholder="要修改的編號"><br/><br/>
+<label class="addf">日期</label>&nbsp;&nbsp;
+<input type="date" id="datechan" class="addform" placeholder="ex:20020527"><br/><br/>
+<label class="addf">主旨</label>&nbsp;&nbsp;
+<input type="text" id="mainchan" class="addform" placeholder="輸入摘要"><br/><br/>
+<label class="addf">說明</label>&nbsp;&nbsp;
+<input type="text" id="detailchan" class="addform" placeholder="輸入說明文字"><br/><br/>
+<button onclick="changedata();" class="button" >修改</button>
+<button id="reb" class="button" type="reset">重設</button>    
+</form>
+<br/>
+</div>
+</div>
+</body>
+</html>
